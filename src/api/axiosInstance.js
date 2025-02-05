@@ -1,9 +1,11 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { API_URL } from "@env"; // Periksa apakah ini diekspor dengan benar
+import { API_URL } from "@env"; // PASTIKAN ini sesuai dengan .env
+
+console.log("API_URL dari .env:", API_URL); // Cek apakah API_URL terbaca
 
 const instance = axios.create({
-  baseURL: API_URL, // Base URL backend dari file .env
+  baseURL: API_URL,
   headers: {
     "Content-Type": "application/json",
   },

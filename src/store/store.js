@@ -8,3 +8,5 @@ export const store = configureStore({
     todo: todoReducer,
   },
 });
+
+export default store;

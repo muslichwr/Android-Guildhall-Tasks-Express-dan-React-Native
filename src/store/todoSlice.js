@@ -1,58 +1,40 @@
-import { createSlice } from "@reduxjs/toolkit";
-import { fetchTodos, createTodo, updateTodo, deleteTodo } from "../api/todoApi";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axios from "../api/axiosInstance";
+
+// Async Action untuk mengambil daftar Todo
+export const fetchTodos = createAsyncThunk("todo/fetchTodos", async (_, { rejectWithValue }) => {
+  try {
+    const response = await axios.get("/api/todos");
+    return response.data;
+  } catch (error) {
+    return rejectWithValue(error.response.data);
+  }
+});
 
 const todoSlice = createSlice({
   name: "todo",
   initialState: {
     todos: [],
+    status: "idle",
+    error: null,
   },
   reducers: {
-    setTodos: (state, action) => {
-      state.todos = action.payload;
-    },
+    // Tambahan jika ingin update secara lokal
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchTodos.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(fetchTodos.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.todos = action.payload;
+      })
+      .addCase(fetchTodos.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload;
+      });
   },
 });
-
-export const { setTodos } = todoSlice.actions;
-
-// **Thunk untuk mengambil daftar todo**
-export const loadTodos = (isDone = null) => async (dispatch) => {
-  try {
-    const response = await fetchTodos(isDone);
-    dispatch(setTodos(response.data));
-  } catch (error) {
-    console.error("Error fetching todos:", error);
-  }
-};
-
-// **Thunk untuk menambahkan todo baru**
-export const addTodo = (todoData) => async (dispatch) => {
-  try {
-    await createTodo(todoData);
-    dispatch(loadTodos()); // Refresh daftar todo setelah menambahkan
-  } catch (error) {
-    console.error("Error creating todo:", error);
-  }
-};
-
-// **Thunk untuk memperbarui todo**
-export const modifyTodo = (id, updateData) => async (dispatch) => {
-  try {
-    await updateTodo(id, updateData);
-    dispatch(loadTodos());
-  } catch (error) {
-    console.error("Error updating todo:", error);
-  }
-};
-
-// **Thunk untuk menghapus todo**
-export const removeTodo = (id) => async (dispatch) => {
-  try {
-    await deleteTodo(id);
-    dispatch(loadTodos());
-  } catch (error) {
-    console.error("Error deleting todo:", error);
-  }
-};
 
 export default todoSlice.reducer;
